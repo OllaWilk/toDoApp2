@@ -10,6 +10,11 @@ class App extends React.Component {
      this.socket = io('http://localhost:8000');
   };
 
+  removeTask (taskIndex) {
+    this.setState(state => {
+      return state.tasks.splice(taskIndex, 1);
+    });
+  };
 
   render() {
     const { tasks } = this.state;
@@ -26,7 +31,7 @@ class App extends React.Component {
           <ul className="tasks-section__list" id="tasks-list">
             {tasks.map(task => (
               <li class="task">{task}
-                <button className="btn btn--red">Remove</button>
+                <button className="btn btn--red" onClick={() => this.removeTask(tasks.indexOf(task))}>Remove</button>
               </li>
             ))}
           </ul>
