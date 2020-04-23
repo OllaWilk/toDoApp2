@@ -18,15 +18,15 @@ io.on('connection', (socket) => {
     socket.emit('updateData', tasks);
 
     socket.on('addTask', task => {
-      console.log('New task added ' + task);
+      console.log('New task: "' + task.name + '" with number ' + task.id + ' added.');
       tasks.push(task);
       socket.broadcast.emit('addTask', task);
     });
 
-    socket.on('removeTask', (taskIdex) => {
-      console.log('Task with index ' + taskIdex + 'removed.');
-      tasks.splice(taskIndex, 1);
-      socket.broadcast.emit('removeTask');
+    socket.on('removeTask', taskId => {
+      console.log('Task with index ' + taskId + 'removed.');
+      tasks = tasks.filter(task => task.id !== taskId);
+      socket.broadcast.emit('removeTask', taskId);
     });
 });
 

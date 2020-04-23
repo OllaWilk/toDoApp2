@@ -1,5 +1,6 @@
 import React from 'react';
 import io from 'socket.io-client';
+const uuidv4 = require('uuid/v4');
 
 class App extends React.Component {
   state = {
@@ -10,17 +11,21 @@ class App extends React.Component {
   componentDidMount() {
      this.socket = io('http://localhost:8000');
      this.socket.on('updateData', (tasksList) => {this.updateTaskList(tasksList)});
+     this.socket.on('addTask', newTask => {this.addTask(newTask)});
+     this.socket.on('removeTask', (taskId) => {this.removeTask(taskId)});
   };
 
   updateTaskList(tasksList) {
     this.setState({tasks: tasksList});
   };
 
-  removeTask (taskIndex) {
-    this.setState(state => {
-      return state.tasks.splice(taskIndex, 1);
+  removeTask (taskId, isLocalChange) {
+    this.setState({
+      tasks: this.state.tasks.filter(task => task.id !== taskId)
     });
-    this.socket.emit('removeTask', taskIndex);
+    if (isLocalChange) {
+      this.socket.emit('removeTask', taskId)
+    }
   };
 
   updateTaskName (newValue) {
@@ -29,15 +34,16 @@ class App extends React.Component {
     });
   }
 
-  addTask (taskName) {
-    this.setState({tasks: [...this.state.tasks, taskName]});
+  addTask (newTask) {
+    this.setState({tasks: [...this.state.tasks, newTask]});
   };
 
   submitForm (e) {
     const {taskName} = this.state;
     e.preventDefault();
-    this.addTask(taskName);
-    this.socket.emit('addTask', taskName);
+    const newTask = {id: uuidv4(), name: taskName};
+    this.addTask(newTask);
+    this.socket.emit('addTask', newTask);
   };
 
   render() {
@@ -54,8 +60,8 @@ class App extends React.Component {
 
           <ul className="tasks-section__list" id="tasks-list">
             {tasks.map(task => (
-              <li class="task">{task}
-                <button className="btn btn--red" onClick={() => this.removeTask(tasks.indexOf(task))}>Remove</button>
+              <li className="task">{task.name}
+                <button className="btn btn--red" onClick={() => this.removeTask(task.id, true)}>Remove</button>
               </li>
             ))}
           </ul>
